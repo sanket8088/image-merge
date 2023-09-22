@@ -1,0 +1,22 @@
+
+/* Define styles for the outer collage container */
+.collage {
+    display: flex;
+    flex-direction: row; /* Images are aligned horizontally */
+    justify-content: flex-start; /* Start from the left */
+    align-items: flex-start; /* Align to the top */
+    flex-wrap: nowrap; /* Prevent wrapping to the next row */
+  }
+  
+  /* Define styles for the vertical containers (inner arrays) */
+  .vertical-container {
+    display: flex;
+    flex-direction: column; /* Images are aligned vertically */
+    justify-content: flex-start; /* Start from the top */
+    align-items: center; /* Center-align images horizontally */
+  }
+  
+
+  .collage-container{
+    background-color: red;
+  }
