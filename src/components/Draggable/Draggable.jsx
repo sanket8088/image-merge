@@ -133,6 +133,10 @@ function QuoteApp() {
   }
 
   const downloadCollage = async() =>{
+    if (state.length === 0){
+      alert("No Images to download")
+      return
+    }
 
       // Use html2canvas to capture the entire collage
       const imagery = document.getElementById("collage-container")
@@ -335,14 +339,14 @@ function QuoteApp() {
       >
         Add new group
       </button>
-      <button
+      {/* <button
         type="button"
         onClick={() => {
           setState([...state, getItems(1)]);
         }}
       >
         Add new item
-      </button>
+      </button> */}
       {/* <button
         type="button"
         onClick={handleImageUpload}
