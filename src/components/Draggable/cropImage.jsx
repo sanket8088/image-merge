@@ -37,7 +37,6 @@ export default async function getCroppedImg(
   scaleX, scaleY,
   flip = { horizontal: false, vertical: false }
 ) {
-    console.log(imageSrc, pixelCrop,  scaleX, scaleY,"iiii")
   const image = await createImage(imageSrc)
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')

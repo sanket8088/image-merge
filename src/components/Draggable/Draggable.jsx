@@ -70,6 +70,7 @@ function QuoteApp() {
   const [croppedImage, setCroppedImage] = useState(null); // State to store cropped image data
   const [aspect, setAspect] = useState(1)
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [name, setName] = useState(false);
   const imageRefs = useRef([]);
 
   const [crop, setCrop] = useState({
@@ -146,7 +147,7 @@ function QuoteApp() {
       console.log("canvas", canvas)
       const link2Download = canvas.toDataURL('image/png')
       var link = document.createElement("a");
-      link.download = "merged_image.png";
+      link.download = name
       link.href = link2Download;
       link.style.width = "100%"; // Set the width of the downloaded image to 100%
       link.style.height = "auto";
@@ -168,9 +169,12 @@ function QuoteApp() {
     const imageItems = Array.from(files).map((file, index) => ({
       id: `image-${index}-${new Date().getTime()}`,
       content: <img src={URL.createObjectURL(file)} alt={`Image ${index}`} />,
+      name : file.name,
       url: URL.createObjectURL(file), // Save the image URL
      // Initial crop data
     }));
+    setName(imageItems[0].name)
+    console.log(imageItems)
     setState([[...selectedImages, ...imageItems]]);
     imageItems.forEach((imageItem) => {
         const { id } = imageItem;
@@ -190,114 +194,60 @@ function QuoteApp() {
   };
   
 
-  const onImageLoad = (e) => {
-    if (aspect && isImageLoaded) {
-      const { width, height } = e.currentTarget;
-      setCrop(centerAspectCrop(width, height, aspect));
-    }
-  };
-
-  const onCropChange = (newCrop) => {
-    setCrop(newCrop);
-  };
-  
-
-  const onCropComplete = (crop) => {
-    makeClientCrop(crop);
-  };
-
   const handleApplyCrop = async () => {
-    
-    if (imageRefs.current !==null && crop.width && crop.height && selectedImageId) {
-        const currentImageRef = imageRefs.current[selectedImageId];
-        const scaleX = currentImageRef.current.naturalWidth / currentImageRef.current.width;
-        const scaleY = currentImageRef.current.naturalHeight / currentImageRef.current.height;
-        console.log(crop)
-        const croppedImageUrl = await getCroppedImg(
-            currentImageRef.current.currentSrc,
-            
-            {
-                "width": Math.floor(crop.width * scaleX),
-                "height": Math.floor(crop.height * scaleY),
-                "x": Math.floor(crop.x * scaleX),
-                "y":Math.floor( crop.y *  scaleY)
-            },
-            0,
-            scaleX,
-            scaleY
-            );
-            console.log(selectedImageId)
-            console.log(croppedImageUrl)
-    
-        //   setCroppedImage(croppedImageUrl)
-    
-    
-    
-            var newArray = [...state]
-            newArray= newArray[0]
-                const indexOfObjectToUpdate = newArray.findIndex((obj) => obj.id === selectedImageId);
-
+    if (imageRefs.current !== null && crop.width && crop.height && selectedImageId) {
+      const currentImageRef = imageRefs.current[selectedImageId];
+      const scaleX = currentImageRef.current.naturalWidth / currentImageRef.current.width;
+      const scaleY = currentImageRef.current.naturalHeight / currentImageRef.current.height;
+  
+      const croppedImageUrl = await getCroppedImg(
+        currentImageRef.current.currentSrc,
+        {
+          width: Math.floor(crop.width * scaleX),
+          height: Math.floor(crop.height * scaleY),
+          x: Math.floor(crop.x * scaleX),
+          y: Math.floor(crop.y * scaleY),
+        },
+        0,
+        scaleX,
+        scaleY
+      );
+  
+      // Create a copy of the state array
+      const newArray = [...state];
+      console.log(state, selectedImageId)
+      // Find the index of the sub-array where the object with the specified id is located
+      const subArrayIndex = newArray.findIndex((subArray) => {
+        return subArray.some((item) => item.id === selectedImageId);
+      });
+  
+      if (subArrayIndex !== -1) {
+        // Find the index of the object within the sub-array with the specified id
+        const indexOfObjectToUpdate = newArray[subArrayIndex].findIndex((obj) => obj.id === selectedImageId);
+  
         if (indexOfObjectToUpdate !== -1) {
-            // Create a new object with the updated URL property
-            const updatedObject = {
-            ...newArray[indexOfObjectToUpdate], // Copy all existing properties
-            url: croppedImageUrl,                   // Update the URL property
-            };
-        
-            // Replace the old object with the updated one
-            newArray[indexOfObjectToUpdate] = updatedObject;
-        
-            // Set the state with the new array
-            setState([newArray]);
+          // Create a new object with the updated URL property
+          const updatedObject = {
+            ...newArray[subArrayIndex][indexOfObjectToUpdate], // Copy all existing properties
+            url: croppedImageUrl, // Update the URL property
+          };
+  
+          // Replace the old object with the updated one within the sub-array
+          newArray[subArrayIndex][indexOfObjectToUpdate] = updatedObject;
+  
+          // Update the state with the new copied array
+          setState(newArray);
         } else {
-            console.error("Object with the specified id not found.");
+          console.error("Object with the specified id not found within the sub-array.");
         }
-     
-
-      
-    //   Here, you can save the `croppedImageUrl` to your desired location or state
-    //   For example, you can setState to store it for later use
-    //   setMyCroppedImage(croppedImageUrl); // Assuming you have a state variable for the cropped image
+      } else {
+        console.error("Sub-array with the specified id not found.");
+      }
   
       closeModal();
     }
   };
 
-
-  // Function to get cropped image data
-//   const getCroppedImg = (image, crop, fileName) => {
-//     console.log(image)
-//     const canvas = document.createElement("canvas");
-//     const scaleX = image.naturalWidth / image.width;
-//     const scaleY = image.naturalHeight / image.height;
-//     console.log(scaleX, scaleY)
-//     canvas.width = crop.width*scaleX;
-//     canvas.height = crop.height*scaleY;
-//     const ctx = canvas.getContext("2d");
-
-//     ctx.drawImage(
-//       image,
-//       crop.x * scaleX,
-//       crop.y * scaleY,
-//       crop.width * scaleX,
-//       crop.height * scaleY,
-//       0,
-//       0,
-//       crop.width,
-//       crop.height
-//     );
-
-//     return new Promise((resolve, reject) => {
-//         canvas.toBlob((blob) => {
-//             if (!blob) {
-//               reject(new Error('Canvas is empty'));
-//               return;
-//             }
-//             blob.name = fileName;
-//             resolve(window.URL.createObjectURL(blob));
-//           }, 'image/png');
-//     });
-//   };
 
   function centerAspectCrop(
     mediaWidth,
@@ -362,7 +312,6 @@ function QuoteApp() {
       </button>
       <input
         type="file"
-        multiple
         accept="image/*"
         onChange={handleImageUpload}
       />
